@@ -52,13 +52,8 @@ def backtrack(res, nums, cur, pos):
 
 
 # Iteratively
-def subsets_v2(self, nums):
+def subsets_v2(nums):
     res = [[]]
     for num in sorted(nums):
         res += [item+[num] for item in res]
     return res
-
-
-test = [1, 2, 3]
-print(test)
-print(subsets(test))

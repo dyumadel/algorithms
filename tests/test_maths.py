@@ -1,18 +1,25 @@
 from algorithms.maths import (
     int_to_base, base_to_int,
     decimal_to_binary_ip,
+    euler_totient,
     extended_gcd,
     factorial, factorial_recur,
-    gcd, lcm,
+    gcd, lcm, trailing_zero, gcd_bit,
     gen_strobogrammatic, strobogrammatic_in_range,
     is_strobogrammatic, is_strobogrammatic2,
+    modular_exponential,
     find_next_square, find_next_square2,
-    prime_check, prime_check2,
-    primes,
+    prime_check,
+    get_primes,
     pythagoras,
     is_prime,
-    encrypt, decrypt, generate_key,
-    combination, combination_memo
+    encrypt, decrypt,
+    combination, combination_memo,
+    hailstone,
+    cosine_similarity,
+    find_order,
+    find_primitive_root,
+    alice_private_key, alice_public_key, bob_private_key, bob_public_key, alice_shared_key, bob_shared_key, diffie_hellman_key_exchange
 )
 
 import unittest
@@ -35,8 +42,8 @@ class TestBaseConversion(unittest.TestCase):
         self.assertEqual(5, base_to_int("101", 2))
         self.assertEqual(0, base_to_int("0", 2))
         self.assertEqual(255, base_to_int("FF", 16))
-        
-        
+
+
 class TestDecimalToBinaryIP(unittest.TestCase):
     """
     Test for the file decimal_to_binary_ip.py
@@ -46,9 +53,27 @@ class TestDecimalToBinaryIP(unittest.TestCase):
     """
 
     def test_decimal_to_binary_ip(self):
-        self.assertEqual("00000000.00000000.00000000.00000000", decimal_to_binary_ip("0.0.0.0"))
-        self.assertEqual("11111111.11111111.11111111.11111111", decimal_to_binary_ip("255.255.255.255"))
-        self.assertEqual("11000000.10101000.00000000.00000001", decimal_to_binary_ip("192.168.0.1"))
+        self.assertEqual("00000000.00000000.00000000.00000000",
+                         decimal_to_binary_ip("0.0.0.0"))
+        self.assertEqual("11111111.11111111.11111111.11111111",
+                         decimal_to_binary_ip("255.255.255.255"))
+        self.assertEqual("11000000.10101000.00000000.00000001",
+                         decimal_to_binary_ip("192.168.0.1"))
+
+
+class TestEulerTotient(unittest.TestCase):
+    """[summary]
+    Test for the file euler_totient.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+
+    def test_euler_totient(self):
+        self.assertEqual(4, euler_totient(8))
+        self.assertEqual(12, euler_totient(21))
+        self.assertEqual(311040, euler_totient(674614))
+        self.assertEqual(2354352, euler_totient(3435145))
 
 
 class TestExtendedGcd(unittest.TestCase):
@@ -79,6 +104,13 @@ class TestGcd(unittest.TestCase):
     def test_lcm(self):
         self.assertEqual(24, lcm(8, 12))
 
+    def test_trailing_zero(self):
+        self.assertEqual(1, trailing_zero(34))
+        self.assertEqual(3, trailing_zero(40))
+
+    def test_gcd_bit(self):
+        self.assertEqual(4, gcd_bit(8, 12))
+        self.assertEqual(1, gcd(13, 17))
 
 class TestGenerateStroboGrammatic(unittest.TestCase):
     """[summary]
@@ -112,6 +144,22 @@ class TestIsStrobogrammatic(unittest.TestCase):
         self.assertFalse(is_strobogrammatic2("14"))
 
 
+class TestModularExponential(unittest.TestCase):
+    """[summary]
+    Test for the file modular_Exponential.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+
+    def test_modular_exponential(self):
+        self.assertEqual(1, modular_exponential(5, 117, 19))
+        self.assertEqual(pow(1243, 65321, 10**9 + 7),
+                         modular_exponential(1243, 65321, 10**9 + 7))
+        self.assertEqual(1, modular_exponential(12, 0, 78))
+        self.assertRaises(ValueError, modular_exponential, 12, -2, 455)
+
+
 class TestNextPerfectSquare(unittest.TestCase):
     """[summary]
     Test for the file next_perfect_square.py
@@ -138,7 +186,8 @@ class TestPrimesSieveOfEratosthenes(unittest.TestCase):
     """
 
     def test_primes(self):
-        self.assertEqual([2, 3, 5, 7], primes(7))
+        self.assertListEqual([2, 3, 5, 7], get_primes(7))
+        self.assertRaises(ValueError, get_primes, -42)
 
 
 class TestPrimeTest(unittest.TestCase):
@@ -157,17 +206,6 @@ class TestPrimeTest(unittest.TestCase):
         counter = 0
         for i in range(2, 101):
             if prime_check(i):
-                counter += 1
-        self.assertEqual(25, counter)
-
-    def test_prime_test2(self):
-        """
-            checks all prime numbers between 2 up to 100.
-            Between 2 up to 100 exists 25 prime numbers!
-        """
-        counter = 0
-        for i in range(2, 101):
-            if prime_check2(i):
                 counter += 1
         self.assertEqual(25, counter)
 
@@ -219,6 +257,7 @@ class TestRSA(unittest.TestCase):
     #         dec = decrypt(en, d, n)
     #         self.assertEqual(data,dec)
 
+
 class TestCombination(unittest.TestCase):
     """[summary]
     Test for the file combination.py
@@ -230,9 +269,12 @@ class TestCombination(unittest.TestCase):
     def test_combination(self):
         self.assertEqual(10, combination(5, 2))
         self.assertEqual(252, combination(10, 5))
+
     def test_combination_memo(self):
         self.assertEqual(10272278170, combination_memo(50, 10))
         self.assertEqual(847660528, combination_memo(40, 10))
+
+
 class TestFactorial(unittest.TestCase):
     """[summary]
     Test for the file factorial.py
@@ -245,13 +287,88 @@ class TestFactorial(unittest.TestCase):
         self.assertEqual(1, factorial(0))
         self.assertEqual(120, factorial(5))
         self.assertEqual(3628800, factorial(10))
-        
+        self.assertEqual(637816310, factorial(34521, 10**9 + 7))
+        self.assertRaises(ValueError, factorial, -42)
+        self.assertRaises(ValueError, factorial, 42, -1)
+
     def test_factorial_recur(self):
         self.assertEqual(1, factorial_recur(0))
         self.assertEqual(120, factorial_recur(5))
         self.assertEqual(3628800, factorial_recur(10))
+        self.assertEqual(637816310, factorial_recur(34521, 10**9 + 7))
+        self.assertRaises(ValueError, factorial_recur, -42)
+        self.assertRaises(ValueError, factorial_recur, 42, -1)
+
+
+class TestHailstone(unittest.TestCase):
+    """[summary]
+    Test for the file hailstone.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+    def test_hailstone(self):
+        self.assertEqual([8, 4, 2, 1], hailstone.hailstone(8))
+        self.assertEqual([10, 5, 16, 8, 4, 2, 1], hailstone.hailstone(10))
+
+
+class TestCosineSimilarity(unittest.TestCase):
+    """[summary]
+    Test for the file cosine_similarity.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+    def test_cosine_similarity(self):
+        vec_a = [1, 1, 1]
+        vec_b = [-1, -1, -1]
+        vec_c = [1, 2, -1]
+        self.assertAlmostEqual(cosine_similarity(vec_a, vec_a), 1)
+        self.assertAlmostEqual(cosine_similarity(vec_a, vec_b), -1)
+        self.assertAlmostEqual(cosine_similarity(vec_a, vec_c), 0.4714045208)
+
+
+class TestFindPrimitiveRoot(unittest.TestCase):
+    """[summary]
+    Test for the file find_primitive_root_simple.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+    def test_find_primitive_root_simple(self):
+        self.assertListEqual([0], find_primitive_root(1))
+        self.assertListEqual([2, 3], find_primitive_root(5))
+        self.assertListEqual([], find_primitive_root(24))
+        self.assertListEqual([2, 5, 13, 15, 17, 18, 19, 20, 22, 24, 32, 35], find_primitive_root(37))
         
+
+class TestFindOrder(unittest.TestCase):
+    """[summary]
+    Test for the file find_order_simple.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+    def test_find_order_simple(self):
+        self.assertEqual(1, find_order(1, 1))
+        self.assertEqual(6, find_order(3, 7))
+        self.assertEqual(-1, find_order(128, 256))
+        self.assertEqual(352, find_order(3, 353))
+
+
+class TestDiffieHellmanKeyExchange(unittest.TestCase):
+    """[summary]
+    Test for the file diffie_hellman_key_exchange.py
+
+    Arguments:
+        unittest {[type]} -- [description]
+    """
+    def test_find_order_simple(self):
+        self.assertFalse(diffie_hellman_key_exchange(3, 6))
+        self.assertTrue(diffie_hellman_key_exchange(3, 353))
+        self.assertFalse(diffie_hellman_key_exchange(5, 211))
+        self.assertTrue(diffie_hellman_key_exchange(11, 971))
+
 if __name__ == "__main__":
     unittest.main()
-    
-    
+
